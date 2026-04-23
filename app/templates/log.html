@@ -1,0 +1,58 @@
+﻿{% extends "base.html" %}
+{% block title %}Log Mood{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card surface-card">
+      <div class="card-body p-4 p-lg-5">
+        <p class="eyebrow mb-2">Daily Reflection</p>
+        <h2 class="mb-3 text-primary">Log your emotional state with context.</h2>
+        <p class="muted-copy mb-4">Echo_Nest now reads your day through intensity, sleep, activity, and interaction rhythm so the mood story feels more human than a one-number score.</p>
+    <form method="post">
+      <div class="row g-4">
+        <div class="col-md-6">
+          <label class="form-label" for="mood">Emotional Intensity (1-5)</label>
+          <input id="mood" type="number" name="mood" min="1" max="5" class="form-control" required>
+          <div class="form-text">1 = low activation, 5 = highly elevated.</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="sleep_hours">Sleep Hours</label>
+          <input id="sleep_hours" type="number" name="sleep_hours" min="0" max="24" step="0.5" class="form-control" placeholder="7.5">
+          <div class="form-text">Helps distinguish peace from fatigue-driven calm.</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="interaction_level">Interaction Level (1-5)</label>
+          <input id="interaction_level" type="number" name="interaction_level" min="1" max="5" class="form-control" placeholder="3">
+          <div class="form-text">Tracks how socially engaged the day felt.</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="screen_time_hours">Screen Time Hours</label>
+          <input id="screen_time_hours" type="number" name="screen_time_hours" min="0" max="24" step="0.5" class="form-control" placeholder="4">
+          <div class="form-text">Useful for understanding focus vs overstimulation.</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="activities">Activities</label>
+          <input id="activities" type="text" name="activities" class="form-control" placeholder="Walk, music, journaling, deep work">
+          <div class="form-text">Comma-separated activities help classify calm, energy, focus, and peace states.</div>
+        </div>
+        <div class="col-12">
+          <div class="state-legend">
+            <span class="state-pill state-pill-calm">Calm</span>
+            <span class="state-pill state-pill-energy">Energy</span>
+            <span class="state-pill state-pill-happy">Happiness</span>
+            <span class="state-pill state-pill-focus">Focus</span>
+            <span class="state-pill state-pill-peace">Peace</span>
+          </div>
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="notes">Notes</label>
+          <textarea id="notes" name="notes" class="form-control" rows="4" placeholder="How did today feel, and what shaped it?"></textarea>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 mt-4">Save Reflection</button>
+    </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

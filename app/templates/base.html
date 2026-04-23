@@ -1,0 +1,779 @@
+﻿{# app/templates/base.html #}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Echo_Nest{% endblock %}</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <style>
+    :root {
+      --magic-primary-rgb: 255, 183, 165;
+      --magic-accent-rgb: 126, 223, 192;
+      --magic-calm-rgb: 168, 213, 186;
+      --magic-energy-rgb: 248, 199, 132;
+      --magic-happy-rgb: 255, 249, 166;
+      --magic-focus-rgb: 212, 180, 226;
+      --magic-peace-rgb: 201, 228, 255;
+      --magic-sad-rgb: 143, 166, 191;
+      --magic-angry-rgb: 233, 130, 130;
+      --magic-gloomy-rgb: 107, 114, 128;
+      --magic-glow-rgb: var(--magic-calm-rgb);
+    }
+
+    body {
+      position: relative;
+      overflow-x: hidden;
+      isolation: isolate;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(var(--magic-primary-rgb), 0.14), transparent 24rem),
+        radial-gradient(circle at 82% 12%, rgba(var(--magic-accent-rgb), 0.15), transparent 20rem),
+        radial-gradient(circle at 48% 68%, rgba(var(--magic-glow-rgb), 0.10), transparent 26rem);
+      transition: background 800ms ease;
+    }
+
+    .magic-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: clip;
+    }
+
+    .navbar,
+    main {
+      position: relative;
+      z-index: 1;
+    }
+
+    .magic-particles {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .magic-orb {
+      position: absolute;
+      width: var(--orb-size, 18px);
+      height: var(--orb-size, 18px);
+      left: 0;
+      top: 0;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.12) 42%, transparent 70%),
+        radial-gradient(circle at 50% 55%, rgba(var(--orb-rgb, var(--magic-accent-rgb)), 0.32), rgba(var(--orb-rgb, var(--magic-accent-rgb)), 0.08) 68%, transparent 100%);
+      opacity: var(--orb-opacity, 0.18);
+      mix-blend-mode: soft-light;
+      filter: blur(0.4px);
+      transform: translate3d(var(--orb-x, 0), var(--orb-y, 0), 0);
+      will-change: transform, opacity;
+    }
+
+    .dashboard-hero,
+    .card,
+    .metric-card,
+    .suggestion-card,
+    .activity-chip,
+    .micro-step,
+    .state-card,
+    .btn {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dashboard-hero::after,
+    .card::after,
+    .metric-card::after,
+    .suggestion-card::after,
+    .activity-chip::after,
+    .micro-step::after,
+    .state-card::after,
+    .btn::after {
+      content: "";
+      position: absolute;
+      inset: -18%;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle at var(--glow-x, 50%) var(--glow-y, 50%), rgba(var(--magic-primary-rgb), 0.24), rgba(var(--magic-accent-rgb), 0.14) 34%, transparent 68%);
+      transition: opacity 240ms ease;
+    }
+
+    .dashboard-hero:hover::after,
+    .card:hover::after,
+    .metric-card:hover::after,
+    .suggestion-card:hover::after,
+    .activity-chip:hover::after,
+    .micro-step:hover::after,
+    .state-card:hover::after,
+    .btn:hover::after,
+    .dashboard-hero:focus-within::after,
+    .card:focus-within::after,
+    .metric-card:focus-within::after,
+    .suggestion-card:focus-within::after,
+    .activity-chip:focus-within::after,
+    .micro-step:focus-within::after,
+    .state-card:focus-within::after,
+    .btn:focus-visible::after {
+      opacity: 1;
+    }
+
+    .card,
+    .metric-card,
+    .suggestion-card,
+    .activity-chip,
+    .micro-step,
+    .btn,
+    .dashboard-hero {
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .card:hover,
+    .metric-card:hover,
+    .suggestion-card:hover,
+    .activity-chip:hover,
+    .micro-step:hover,
+    .btn:hover,
+    .dashboard-hero:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 34px rgba(var(--magic-primary-rgb), 0.16);
+    }
+
+    .metric-card,
+    .suggestion-card,
+    .activity-chip,
+    .card.surface-card,
+    .micro-step,
+    .micro-activity-card {
+      background: rgba(255, 255, 255, 0.78);
+      border-color: #E7DDD5;
+      backdrop-filter: blur(10px) saturate(1.04);
+    }
+
+    body {
+      color: #2f2926;
+      font-family: "Aptos", "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+    }
+
+    .navbar {
+      margin: 1rem auto 1.75rem;
+      max-width: min(1280px, calc(100% - 24px));
+      border: 1px solid rgba(255, 255, 255, 0.52);
+      border-radius: 1.1rem;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.56), rgba(255, 247, 241, 0.72)),
+        linear-gradient(135deg, rgba(var(--magic-primary-rgb), 0.16), rgba(var(--magic-accent-rgb), 0.12)) !important;
+      box-shadow: 0 14px 36px rgba(120, 96, 82, 0.08);
+      backdrop-filter: blur(18px) saturate(1.08);
+    }
+
+    .navbar .container-fluid {
+      padding: 0.9rem 1.15rem;
+    }
+
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: #4a3a35 !important;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+
+    .nav-link {
+      color: rgba(74, 58, 53, 0.82) !important;
+      font-weight: 600;
+      padding-inline: 0.85rem !important;
+      border-radius: 999px;
+      transition: background 160ms ease, color 160ms ease;
+    }
+
+    .nav-link:hover,
+    .nav-link:focus-visible {
+      color: #3d302c !important;
+      background: rgba(255, 255, 255, 0.46);
+    }
+
+    main.container {
+      max-width: 1200px;
+      padding-bottom: 3rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ffb29f, #f09d88);
+      border-color: #f09d88;
+      color: #382e2a;
+      font-weight: 700;
+      box-shadow: 0 12px 28px rgba(240, 157, 136, 0.24);
+    }
+
+    .btn-primary:hover,
+    .btn-primary:focus-visible {
+      background: linear-gradient(135deg, #f8a894, #eb917b);
+      border-color: #eb917b;
+      color: #2f2926;
+    }
+
+    .btn-outline-secondary {
+      border-color: rgba(95, 90, 86, 0.22);
+      color: #5f5a56;
+      background: rgba(255, 255, 255, 0.58);
+      backdrop-filter: blur(8px);
+    }
+
+    .btn-outline-secondary:hover,
+    .btn-outline-secondary:focus-visible {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba(var(--magic-accent-rgb), 0.4);
+      color: #2f2926;
+    }
+
+    .home-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+      gap: 1.5rem;
+      align-items: stretch;
+      min-height: calc(100vh - 180px);
+      padding: 1rem 0 2rem;
+    }
+
+    .home-hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.42);
+      border-radius: 2rem;
+      padding: clamp(2rem, 4vw, 4rem);
+      background:
+        radial-gradient(circle at top left, rgba(var(--magic-primary-rgb), 0.28), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(var(--magic-accent-rgb), 0.22), transparent 32%),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(253, 247, 241, 0.94));
+      box-shadow: 0 28px 80px rgba(100, 87, 79, 0.12);
+      backdrop-filter: blur(16px);
+    }
+
+    .home-hero::before {
+      content: "";
+      position: absolute;
+      inset: auto -8% -22% auto;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(var(--magic-accent-rgb), 0.22), transparent 70%);
+      filter: blur(6px);
+      pointer-events: none;
+    }
+
+    .home-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(var(--magic-primary-rgb), 0.22);
+      color: #7c6459;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .home-title {
+      margin: 1rem 0 1rem;
+      font-size: clamp(3rem, 6vw, 5.4rem);
+      line-height: 0.94;
+      letter-spacing: -0.06em;
+      color: #3c312d;
+      max-width: 10ch;
+    }
+
+    .home-title-accent {
+      display: block;
+      color: #d68f80;
+    }
+
+    .home-lead-in {
+      margin: 0;
+      color: #7c6459;
+      font-size: 0.98rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .home-subtitle {
+      max-width: 56ch;
+      font-size: clamp(1.05rem, 1.7vw, 1.25rem);
+      color: #635c58;
+      line-height: 1.7;
+    }
+
+    .home-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin-top: 1.8rem;
+    }
+
+    .home-actions .btn {
+      min-width: 170px;
+      border-radius: 999px;
+      padding: 0.95rem 1.35rem;
+      font-size: 1rem;
+    }
+
+    .home-proof-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-top: 1.4rem;
+    }
+
+    .home-proof-pill {
+      padding: 0.55rem 0.85rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(231, 221, 213, 0.95);
+      color: #5f5a56;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .home-stat {
+      border-radius: 1.25rem;
+      padding: 1rem 1.1rem;
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid rgba(231, 221, 213, 0.95);
+      box-shadow: 0 10px 24px rgba(88, 76, 68, 0.06);
+    }
+
+    .home-stat-label {
+      display: block;
+      color: #7d746f;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.4rem;
+    }
+
+    .home-stat-value {
+      display: block;
+      color: #3b302d;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .home-panel {
+      display: grid;
+      gap: 1rem;
+      align-content: start;
+    }
+
+    .home-card {
+      border-radius: 1.6rem;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.46);
+      background: rgba(255, 255, 255, 0.74);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 48px rgba(88, 76, 68, 0.08);
+    }
+
+    .home-card h3,
+    .home-card h4 {
+      color: #3a302d;
+      letter-spacing: -0.03em;
+    }
+
+    .home-card p,
+    .home-card li {
+      color: #665f5b;
+    }
+
+    .home-card-wide {
+      grid-column: 1 / -1;
+    }
+
+    .home-card-split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 0.9fr);
+      gap: 1.2rem;
+      align-items: center;
+    }
+
+    .home-list {
+      display: grid;
+      gap: 0.8rem;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .home-list li {
+      display: flex;
+      gap: 0.8rem;
+      align-items: flex-start;
+    }
+
+    .home-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      margin-top: 0.4rem;
+      flex: 0 0 auto;
+      background: linear-gradient(135deg, rgba(var(--magic-primary-rgb), 0.95), rgba(var(--magic-accent-rgb), 0.95));
+      box-shadow: 0 0 0 5px rgba(var(--magic-primary-rgb), 0.1);
+    }
+
+    .home-preview-stack {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .home-preview-card {
+      border-radius: 1.1rem;
+      padding: 1rem 1.05rem;
+      border: 1px solid rgba(231, 221, 213, 0.95);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 247, 241, 0.9));
+    }
+
+    .home-preview-label {
+      display: inline-flex;
+      margin-bottom: 0.6rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      background: rgba(var(--magic-accent-rgb), 0.16);
+      color: #4a423f;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .home-preview-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .home-preview-metrics div {
+      border-radius: 1rem;
+      padding: 0.9rem;
+      background: rgba(255, 255, 255, 0.64);
+      border: 1px solid rgba(231, 221, 213, 0.9);
+    }
+
+    .home-preview-metric-label {
+      display: block;
+      margin-bottom: 0.35rem;
+      color: #7d746f;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .home-mood-ribbon {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1rem;
+    }
+
+    .home-ribbon-pill {
+      padding: 0.5rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      background: rgba(255, 255, 255, 0.66);
+      color: #4a423f;
+    }
+
+    .ribbon-calm { background: rgba(var(--magic-calm-rgb), 0.18); }
+    .ribbon-energy { background: rgba(var(--magic-energy-rgb), 0.2); }
+    .ribbon-happy { background: rgba(var(--magic-happy-rgb), 0.28); }
+    .ribbon-focus { background: rgba(var(--magic-focus-rgb), 0.18); }
+    .ribbon-peace { background: rgba(var(--magic-peace-rgb), 0.24); }
+    .ribbon-sad { background: rgba(var(--magic-sad-rgb), 0.22); }
+    .ribbon-angry { background: rgba(var(--magic-angry-rgb), 0.22); }
+    .ribbon-gloomy { background: rgba(var(--magic-gloomy-rgb), 0.2); color: #2f3642; }
+
+    .home-flow {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .home-flow-step {
+      border-radius: 1.15rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(231, 221, 213, 0.95);
+    }
+
+    .state-card {
+      animation: stateBreathe 4s ease-in-out infinite;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
+    }
+
+    .state-card-calm { box-shadow: 0 0 0 1px rgba(var(--magic-calm-rgb), 0.05), 0 12px 28px rgba(var(--magic-calm-rgb), 0.10); }
+    .state-card-energy { box-shadow: 0 0 0 1px rgba(var(--magic-energy-rgb), 0.05), 0 12px 28px rgba(var(--magic-energy-rgb), 0.12); }
+    .state-card-happy { box-shadow: 0 0 0 1px rgba(var(--magic-happy-rgb), 0.05), 0 12px 28px rgba(var(--magic-happy-rgb), 0.14); }
+    .state-card-focus { box-shadow: 0 0 0 1px rgba(var(--magic-focus-rgb), 0.05), 0 12px 28px rgba(var(--magic-focus-rgb), 0.12); }
+    .state-card-peace { box-shadow: 0 0 0 1px rgba(var(--magic-peace-rgb), 0.05), 0 12px 28px rgba(var(--magic-peace-rgb), 0.12); }
+    .state-card-sad { box-shadow: 0 0 0 1px rgba(var(--magic-sad-rgb), 0.05), 0 12px 28px rgba(var(--magic-sad-rgb), 0.12); }
+    .state-card-angry { box-shadow: 0 0 0 1px rgba(var(--magic-angry-rgb), 0.05), 0 12px 28px rgba(var(--magic-angry-rgb), 0.12); }
+    .state-card-gloomy { box-shadow: 0 0 0 1px rgba(var(--magic-gloomy-rgb), 0.06), 0 12px 28px rgba(var(--magic-gloomy-rgb), 0.18); }
+
+    .dashboard-hero {
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      position: relative;
+    }
+
+    .dashboard-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.18), transparent 55%),
+        radial-gradient(circle at top right, rgba(255,255,255,0.22), transparent 32%);
+      opacity: 0.9;
+    }
+
+    @keyframes stateBreathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.01); }
+    }
+
+    @media (max-width: 767px) {
+      .magic-orb:nth-child(n + 15) {
+        display: none;
+      }
+
+      .home-shell {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+
+      .home-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .home-card-split,
+      .home-flow,
+      .home-preview-metrics {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .magic-layer,
+      .state-card {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      .magic-layer {
+        display: none;
+      }
+
+      .card:hover,
+      .metric-card:hover,
+      .suggestion-card:hover,
+      .activity-chip:hover,
+      .micro-step:hover,
+      .btn:hover,
+      .dashboard-hero:hover,
+      .state-card {
+        transform: none !important;
+      }
+    }
+  </style>
+
+  {% block head_extra %}{% endblock %}
+</head>
+<body {% block body_attrs %}data-dominant-state="calm"{% endblock %}>
+  <div class="magic-layer" aria-hidden="true">
+    <div class="magic-particles" id="magicParticles"></div>
+  </div>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('mood.index') }}">Echo_Nest</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          {% if current_user.is_authenticated %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('mood.log') }}">Log Mood</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
+          {% else %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.register') }}">Register</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    (() => {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduceMotion) {
+        return;
+      }
+
+      const body = document.body;
+      const rootStyle = getComputedStyle(document.documentElement);
+      const particleLayer = document.getElementById('magicParticles');
+      if (!particleLayer) {
+        return;
+      }
+
+      const moodPalette = {
+        calm: '--magic-calm-rgb',
+        energy: '--magic-energy-rgb',
+        happy: '--magic-happy-rgb',
+        happiness: '--magic-happy-rgb',
+        focus: '--magic-focus-rgb',
+        peace: '--magic-peace-rgb',
+        sad: '--magic-sad-rgb',
+        angry: '--magic-angry-rgb',
+        gloomy: '--magic-gloomy-rgb'
+      };
+
+      const parseRgbVar = (name) => rootStyle.getPropertyValue(name).trim() || '126, 223, 192';
+      const dominantState = () => body.dataset.dominantState || 'calm';
+      const stateCards = Array.from(document.querySelectorAll('.state-card'));
+      const particleCount = window.innerWidth < 768 ? 8 : 12;
+      const particles = [];
+
+      const stateWeights = () => {
+        if (!stateCards.length) {
+          return [{ key: dominantState(), weight: 1 }];
+        }
+        const weights = stateCards.map((card) => {
+          const klass = Array.from(card.classList).find((name) => name.startsWith('state-card-') && name !== 'state-card');
+          const key = (klass || 'state-card-calm').replace('state-card-', '');
+          const countText = card.querySelector('.state-card-count')?.textContent || '1';
+          const weight = Number.parseInt(countText, 10) || 1;
+          return { key, weight };
+        });
+        const total = weights.reduce((sum, item) => sum + item.weight, 0) || 1;
+        return weights.map((item) => ({ key: item.key, weight: item.weight / total }));
+      };
+
+      const chooseMood = () => {
+        const weights = stateWeights();
+        let cursor = Math.random();
+        for (const item of weights) {
+          cursor -= item.weight;
+          if (cursor <= 0) {
+            return item.key;
+          }
+        }
+        return weights[0]?.key || dominantState();
+      };
+
+      const setGlow = (state) => {
+        const rgb = parseRgbVar(moodPalette[state] || '--magic-calm-rgb');
+        document.documentElement.style.setProperty('--magic-glow-rgb', rgb);
+      };
+
+      const createParticle = () => {
+        const node = document.createElement('span');
+        node.className = 'magic-orb';
+        const mood = chooseMood();
+        const size = 10 + Math.random() * 20;
+        const xBias = stateCards.length
+          ? stateCards[Math.floor(Math.random() * stateCards.length)].getBoundingClientRect().left + Math.random() * 120
+          : Math.random() * window.innerWidth;
+        node.style.setProperty('--orb-size', `${size}px`);
+        node.style.setProperty('--orb-rgb', parseRgbVar(moodPalette[mood] || '--magic-accent-rgb'));
+        node.style.setProperty('--orb-opacity', `${0.1 + Math.random() * 0.2}`);
+        particleLayer.appendChild(node);
+        particles.push({
+          node,
+          x: Math.min(window.innerWidth - size, Math.max(0, xBias)),
+          y: window.innerHeight + Math.random() * window.innerHeight * 0.45,
+          speed: 0.14 + Math.random() * 0.32,
+          sway: 10 + Math.random() * 28,
+          phase: Math.random() * Math.PI * 2,
+          mood,
+          size
+        });
+      };
+
+      for (let i = 0; i < particleCount; i += 1) {
+        createParticle();
+      }
+
+      const setCardGlowOrigin = (event) => {
+        const target = event.currentTarget;
+        const rect = target.getBoundingClientRect();
+        target.style.setProperty('--glow-x', `${((event.clientX - rect.left) / rect.width) * 100}%`);
+        target.style.setProperty('--glow-y', `${((event.clientY - rect.top) / rect.height) * 100}%`);
+      };
+
+      document.querySelectorAll('.card, .metric-card, .suggestion-card, .activity-chip, .micro-step, .btn, .dashboard-hero, .state-card')
+        .forEach((node) => {
+          node.addEventListener('pointermove', setCardGlowOrigin, { passive: true });
+        });
+
+      const tick = (now) => {
+        setGlow(dominantState());
+
+        const t = now / 1000;
+
+        particles.forEach((particle) => {
+          particle.y -= particle.speed;
+          particle.x += Math.sin(t * 0.55 + particle.phase) * 0.08;
+          const bob = Math.sin(t * 0.9 + particle.phase) * particle.sway;
+          particle.node.style.transform = `translate3d(${particle.x}px, ${particle.y + bob}px, 0)`;
+          if (particle.y < -particle.size - 40) {
+            particle.y = window.innerHeight + 40 + Math.random() * 180;
+            particle.x = Math.random() * window.innerWidth;
+            particle.mood = chooseMood();
+            particle.node.style.setProperty('--orb-rgb', parseRgbVar(moodPalette[particle.mood] || '--magic-accent-rgb'));
+          }
+        });
+
+        requestAnimationFrame(tick);
+      };
+
+      requestAnimationFrame(tick);
+    })();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

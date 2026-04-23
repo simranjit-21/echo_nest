@@ -1,0 +1,581 @@
+﻿{% extends "base.html" %}
+{% block title %}Your Dashboard{% endblock %}
+{% block body_attrs %}data-dominant-state="{{ summary.dominant_state.palette }}"{% endblock %}
+{% block content %}
+<section class="dashboard-hero mb-4">
+  <div>
+    <p class="eyebrow mb-2">Personal Climate Brief</p>
+    <h1 class="dashboard-title">Your mood data, framed like a story instead of a spreadsheet.</h1>
+    <p class="dashboard-copy mb-0">{{ summary.climate_note }}</p>
+  </div>
+  <a href="{{ url_for('mood.log') }}" class="btn btn-light hero-cta">Add today's entry</a>
+</section>
+
+<div class="row g-4 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="metric-card">
+      <span class="metric-label">Emotional Intensity</span>
+      <strong class="metric-value">{{ summary.average_mood }}</strong>
+      <span class="metric-note">average signal strength</span>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="metric-card">
+      <span class="metric-label">Trend</span>
+      <strong class="metric-value">{{ summary.trend_label }}</strong>
+      <span class="metric-note">recent direction</span>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="metric-card">
+      <span class="metric-label">Dominant State</span>
+      <strong class="metric-value metric-state metric-state-{{ summary.dominant_state.palette }}">{{ summary.dominant_state.label }}</strong>
+      <span class="metric-note">most common state</span>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="metric-card">
+      <span class="metric-label">Recovery Signals</span>
+      <strong class="metric-value">{{ summary.average_sleep }}</strong>
+      <span class="metric-note">avg sleep hours</span>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-12 col-xl-7">
+    <div class="card surface-card h-100">
+      <div class="card-body">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow mb-1">Emotion Spectrum</p>
+            <h5 class="card-title mb-0">Meaningful states, mapped with color psychology</h5>
+          </div>
+        </div>
+        <div class="state-grid">
+          {% for state in summary.state_breakdown %}
+            <div class="state-card state-card-{{ state.palette }}">
+              <span class="state-card-title">{{ state.label }}</span>
+              <strong class="state-card-count">{{ state.count }}</strong>
+              <p class="state-card-copy mb-0">{{ state.description }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-5">
+    <div class="card surface-card h-100">
+      <div class="card-body">
+        <p class="eyebrow mb-1">Behavior Signals</p>
+        <h5 class="card-title mb-4">What your routines are saying</h5>
+        <div class="metric-stack">
+          <div class="mini-metric">
+            <span class="metric-label">Average Sleep</span>
+            <strong>{{ summary.average_sleep }} hrs</strong>
+          </div>
+          <div class="mini-metric">
+            <span class="metric-label">Interaction Rhythm</span>
+            <strong>{{ summary.average_interaction }}/5</strong>
+          </div>
+          <div class="mini-metric">
+            <span class="metric-label">Bright Streak</span>
+            <strong>{{ summary.current_streak }} entries</strong>
+          </div>
+        </div>
+        <div class="mt-4">
+          <p class="eyebrow mb-2">Real-Time Suggestions</p>
+          <div class="suggestion-stack">
+            {% for suggestion in summary.realtime_suggestions %}
+              <div class="suggestion-card">{{ suggestion }}</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-xl-8">
+    <div class="card surface-card h-100">
+      <div class="card-body">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow mb-1">Pattern View</p>
+            <h5 class="card-title mb-0">Emotional Climate Trend</h5>
+          </div>
+          <span class="pill">{{ summary.entry_count }} entries</span>
+        </div>
+        <div class="chart-shell">
+          <canvas id="trendChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-4">
+    <div class="card surface-card card-accent h-100">
+      <div class="card-body">
+        <p class="eyebrow mb-1">Forecast View</p>
+        <h5 class="card-title text-accent">Tomorrow's Forecast</h5>
+        <p class="display-4 text-accent mb-1" id="predMood">-</p>
+        <span class="badge bg-primary" id="predConf">-</span>
+        <div class="mt-3">
+          <span class="state-pill" id="predState">Loading state...</span>
+        </div>
+        <div id="shapChart" class="mt-4"></div>
+        <hr class="my-4">
+        <div>
+          <p class="eyebrow mb-2">Best Mood Anchors</p>
+          {% if summary.top_activities %}
+            <div class="activity-list">
+              {% for activity in summary.top_activities %}
+                <div class="activity-chip">
+                  <span>{{ activity.name }}</span>
+                  <strong>{{ activity.count }}x</strong>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="muted-copy mb-0">Add activities to your mood logs and Echo_Nest will spotlight your best emotional anchors here.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-12">
+    <div class="card surface-card activity-console">
+      <div class="card-body">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow mb-1">Adaptive Reset</p>
+            <h5 class="card-title mb-0">A built-in mood stabilizer matched to your current state</h5>
+          </div>
+          <span class="state-pill state-pill-{{ summary.dominant_state.palette }}">{{ summary.dominant_state.label }}</span>
+        </div>
+        <div class="row g-4 align-items-start">
+          <div class="col-12 col-xl-5">
+            <div class="micro-activity-card micro-activity-{{ summary.dominant_state.palette }}">
+              <p class="eyebrow mb-2">Current Activity</p>
+              <h3 class="micro-activity-title">{{ summary.micro_activity.title }}</h3>
+              <p class="mb-3">{{ summary.micro_activity.prompt }}</p>
+              <button type="button" class="btn btn-dark micro-activity-button" id="activityStart">
+                {{ summary.micro_activity.button }}
+              </button>
+              <p class="micro-activity-timer mt-3 mb-0" id="activityTimer">{{ summary.micro_activity.duration }}s</p>
+            </div>
+          </div>
+          <div class="col-12 col-xl-7">
+            <div class="micro-steps" id="activitySteps">
+              {% for step in summary.micro_activity.steps %}
+                <div class="micro-step {% if loop.first %}is-active{% endif %}">{{ step }}</div>
+              {% endfor %}
+            </div>
+            <p class="muted-copy mt-3 mb-0">This module changes with your dominant emotional state so your dashboard can do more than describe how you feel; it gives you a small next action.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-12 col-xl-7">
+    <div class="card surface-card h-100">
+      <div class="card-body">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow mb-1">AI Wellness Companion</p>
+            <h5 class="card-title mb-0">Context-aware support built from sleep, streaks, and mood patterns</h5>
+          </div>
+          <div class="companion-meta">
+            <span class="pill">{{ companion.integrations.journal_source }}</span>
+            <span class="state-pill state-pill-{{ summary.dominant_state.palette }}">{{ summary.dominant_state.label }}</span>
+          </div>
+        </div>
+        <div class="companion-response" id="companionResponse">{{ companion.response }}</div>
+        <div class="companion-flags mt-3">
+          {% for flag in companion.flags %}
+            <span class="pill">{{ flag.replace('_', ' ')|title }}</span>
+          {% endfor %}
+        </div>
+        <div class="mt-4">
+          <label class="form-label" for="companionMessage">Talk to your companion</label>
+          <div class="companion-chat-row">
+            <textarea id="companionMessage" class="form-control" rows="3" placeholder="What feels hardest right now?"></textarea>
+            <button type="button" class="btn btn-primary" id="companionSend">Get support</button>
+          </div>
+        </div>
+        <div class="row g-3 mt-2">
+          <div class="col-12 col-lg-6">
+            <div class="support-card">
+              <p class="eyebrow mb-2">CBT Reframe</p>
+              <strong>{{ companion.cbt.thought }}</strong>
+              <p class="mb-2 mt-2">{{ companion.cbt.reframe }}</p>
+              <p class="muted-copy mb-0">{{ companion.cbt.replacement }}</p>
+            </div>
+          </div>
+          <div class="col-12 col-lg-6">
+            <div class="support-card">
+              <p class="eyebrow mb-2">{{ companion.debrief.title }}</p>
+              <strong>{{ companion.debrief.summary }}</strong>
+              <p class="mb-0 mt-2">{{ companion.debrief.coach_prompt }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-5">
+    <div class="card surface-card h-100">
+      <div class="card-body">
+        <p class="eyebrow mb-1">Soundtrack Support</p>
+        <h5 class="card-title mb-3">Dynamic Spotify and YouTube recommendations</h5>
+        <p class="muted-copy mb-3">
+          {% if companion.integrations.music_live %}
+            Live provider results are active.
+          {% else %}
+            Showing smart fallback links until Spotify or YouTube credentials are configured.
+          {% endif %}
+        </p>
+        <div class="music-stack">
+          {% for rec in companion.music %}
+            <div class="music-card">
+              <div>
+                <strong>{{ rec.title }}</strong>
+                <p class="muted-copy mb-0">{{ rec.reason }}</p>
+              </div>
+              <div class="music-links">
+                <a href="{{ rec.spotify_url }}" target="_blank" rel="noreferrer" class="btn btn-outline-secondary btn-sm">Spotify</a>
+                <a href="{{ rec.youtube_url }}" target="_blank" rel="noreferrer" class="btn btn-outline-secondary btn-sm">YouTube</a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <hr class="my-4">
+        <p class="eyebrow mb-1">On-Demand Micro Activities</p>
+        <div class="suggestion-stack">
+          {% for item in companion.micro_activities %}
+            <div class="suggestion-card">
+              <strong>{{ item.title }}</strong>
+              <p class="mb-1 mt-2">{{ item.reason }}</p>
+              <span class="muted-copy">{{ item.duration }} seconds</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-12 col-xl-7">
+    <div class="card surface-card h-100">
+      <div class="card-body">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow mb-1">Journal Intelligence</p>
+            <h5 class="card-title mb-0">Pattern-aware journaling insights</h5>
+          </div>
+          <span class="pill">LLM-ready reflection layer</span>
+        </div>
+        <p class="mb-3">{{ companion.journal.summary }}</p>
+        <div class="row g-3">
+          <div class="col-12 col-lg-4">
+            <div class="mini-panel">
+              <span class="metric-label">Patterns</span>
+              {% if companion.journal.patterns %}
+                {% for pattern in companion.journal.patterns %}
+                  <div class="micro-step">{{ pattern }}</div>
+                {% endfor %}
+              {% else %}
+                <p class="muted-copy mb-0">No repeated themes yet.</p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-12 col-lg-4">
+            <div class="mini-panel">
+              <span class="metric-label">Recurring Concerns</span>
+              {% if companion.journal.recurring_concerns %}
+                {% for concern in companion.journal.recurring_concerns %}
+                  <div class="micro-step">{{ concern }}</div>
+                {% endfor %}
+              {% else %}
+                <p class="muted-copy mb-0">No recurring concerns detected yet.</p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-12 col-lg-4">
+            <div class="mini-panel">
+              <span class="metric-label">Prompt</span>
+              <p class="mb-0 mt-2">{{ companion.journal.prompt }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-5">
+    <div class="card surface-card h-100">
+      <div class="card-body">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow mb-1">Recovery Rewards</p>
+            <h5 class="card-title mb-0">Micro-habits, weekly goals, and badges</h5>
+          </div>
+          <span class="pill" id="habitPoints">{{ gamification.total_points }} pts</span>
+        </div>
+        <div class="metric-stack">
+          <div class="mini-metric">
+            <span class="metric-label">Logging Streak</span>
+            <strong id="loggingStreak">{{ gamification.logging_streak }} days</strong>
+          </div>
+          <div class="mini-metric">
+            <span class="metric-label">Reset Streak</span>
+            <strong id="resetStreak">{{ gamification.reset_streak }} days</strong>
+          </div>
+          <div class="mini-metric">
+            <span class="metric-label">Weekly Goal</span>
+            <strong id="weeklyGoal">{{ gamification.weekly_goal.current }}/{{ gamification.weekly_goal.target }}</strong>
+          </div>
+        </div>
+        <div class="goal-progress mt-3">
+          <div class="goal-progress-bar" id="goalProgressBar" style="width: {{ ((gamification.weekly_goal.current / gamification.weekly_goal.target) * 100) if gamification.weekly_goal.target else 0 }}%;"></div>
+        </div>
+        <button
+          type="button"
+          class="btn btn-primary mt-3 w-100"
+          id="completeReset"
+          data-habit-key="adaptive_reset"
+          data-habit-title="{{ summary.micro_activity.title }}"
+          data-emotional-state="{{ summary.latest_state_key }}"
+        >
+          Mark Reset Complete
+        </button>
+        <div class="badge-grid mt-4" id="badgeGrid">
+          {% for badge in gamification.badges %}
+            <div class="badge-card {% if badge.earned %}is-earned{% endif %}">
+              <strong>{{ badge.title }}</strong>
+              <p class="mb-0">{{ badge.description }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const entries = {{ entries|tojson }};
+const dates = entries.map(e => e.date);
+const moods = entries.map(e => e.mood);
+const microActivity = {{ summary.micro_activity|tojson }};
+const stateColors = {
+  calm: '#79C7C5',
+  energy: '#F39B3D',
+  happiness: '#F3D34A',
+  focus: '#A57AD9',
+  peace: '#F3B7CC',
+  sad: '#7C8EA3',
+  angry: '#E35757',
+  gloomy: '#4D5563',
+};
+const chartCanvas = document.getElementById('trendChart');
+
+if (chartCanvas && moods.length) {
+  document.dispatchEvent(new CustomEvent('echo-loading-start'));
+  const ctx = chartCanvas.getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+  gradient.addColorStop(0, 'rgba(255, 183, 165, 0.45)');
+  gradient.addColorStop(1, 'rgba(255, 183, 165, 0.02)');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [{
+        label: 'Mood (1-5)',
+        data: moods,
+        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+        backgroundColor: gradient,
+        pointBackgroundColor: entries.map(e => stateColors[e.state.key] || stateColors.calm),
+        pointBorderColor: entries.map(e => stateColors[e.state.key] || stateColors.calm),
+        tension: 0.35,
+        fill: true,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+      },
+      scales: {
+        y: { min: 1, max: 5, ticks: { stepSize: 1 } },
+      }
+    }
+  });
+  document.dispatchEvent(new CustomEvent('echo-loading-end'));
+} else if (chartCanvas) {
+  chartCanvas.parentElement.innerHTML = '<p class="muted-copy mb-0">Log a few mood entries to unlock your first emotional trendline.</p>';
+}
+
+async function loadForecast() {
+  document.dispatchEvent(new CustomEvent('echo-loading-start'));
+  try {
+    const resp = await fetch('/api/predict');
+    const data = await resp.json();
+
+    document.getElementById('predMood').textContent = data.predicted_mood.toFixed(1);
+    document.getElementById('predConf').textContent = `${(data.confidence * 100).toFixed(0)}% confidence`;
+    const predState = document.getElementById('predState');
+    predState.textContent = data.predicted_state.label;
+    predState.className = `state-pill state-pill-${data.predicted_state.palette}`;
+
+    if (data.shap && Object.keys(data.shap).length) {
+      const container = document.getElementById('shapChart');
+      const sorted = Object.entries(data.shap)
+        .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+        .slice(0, 5);
+
+      sorted.forEach(([name, val]) => {
+        const wrapper = document.createElement('div');
+        const bar = document.createElement('div');
+        const label = document.createElement('span');
+
+        bar.style.width = `${Math.abs(val) * 100}%`;
+        bar.style.height = '8px';
+        bar.style.background = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+        bar.style.marginBottom = '4px';
+
+        label.textContent = `${name} (${val > 0 ? '+' : ''}${val.toFixed(2)})`;
+        label.style.marginLeft = '8px';
+
+        wrapper.appendChild(bar);
+        wrapper.appendChild(label);
+        container.appendChild(wrapper);
+      });
+    } else {
+      document.getElementById('shapChart').innerHTML = '<p class="muted-copy mb-0">Forecast explanations will appear once the model has enough confident history.</p>';
+    }
+  } finally {
+    document.dispatchEvent(new CustomEvent('echo-loading-end'));
+  }
+}
+
+loadForecast();
+
+const activityStart = document.getElementById('activityStart');
+const activityTimer = document.getElementById('activityTimer');
+const activitySteps = Array.from(document.querySelectorAll('#activitySteps .micro-step'));
+let timerHandle = null;
+
+if (activityStart && activityTimer && activitySteps.length) {
+  activityStart.addEventListener('click', () => {
+    if (timerHandle) {
+      clearInterval(timerHandle);
+    }
+
+    let remaining = Number(microActivity.duration) || 60;
+    let activeIndex = 0;
+    const stepLength = Math.max(1, Math.floor(remaining / activitySteps.length));
+    activityTimer.textContent = `${remaining}s`;
+    activitySteps.forEach((step, index) => {
+      step.classList.toggle('is-active', index === 0);
+      step.classList.toggle('is-complete', false);
+    });
+
+    timerHandle = setInterval(() => {
+      remaining -= 1;
+      activityTimer.textContent = remaining > 0 ? `${remaining}s` : 'Complete';
+
+      const nextIndex = Math.min(
+        activitySteps.length - 1,
+        Math.floor(((Number(microActivity.duration) || 60) - Math.max(remaining, 0)) / stepLength)
+      );
+      if (nextIndex !== activeIndex) {
+        activitySteps[activeIndex]?.classList.remove('is-active');
+        activitySteps[activeIndex]?.classList.add('is-complete');
+        activitySteps[nextIndex]?.classList.add('is-active');
+        activeIndex = nextIndex;
+      }
+
+      if (remaining <= 0) {
+        clearInterval(timerHandle);
+        timerHandle = null;
+        activitySteps.forEach((step) => {
+          step.classList.remove('is-active');
+          step.classList.add('is-complete');
+        });
+      }
+    }, 1000);
+  });
+}
+
+const companionResponse = document.getElementById('companionResponse');
+const companionMessage = document.getElementById('companionMessage');
+const companionSend = document.getElementById('companionSend');
+
+if (companionSend && companionMessage && companionResponse) {
+  companionSend.addEventListener('click', async () => {
+    companionSend.disabled = true;
+    try {
+      const resp = await fetch('/api/companion/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: companionMessage.value })
+      });
+      const data = await resp.json();
+      companionResponse.textContent = data.response;
+    } finally {
+      companionSend.disabled = false;
+    }
+  });
+}
+
+const completeReset = document.getElementById('completeReset');
+
+if (completeReset) {
+  completeReset.addEventListener('click', async () => {
+    completeReset.disabled = true;
+    try {
+      const resp = await fetch('/api/habit/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          habit_key: completeReset.dataset.habitKey,
+          habit_title: completeReset.dataset.habitTitle,
+          emotional_state: completeReset.dataset.emotionalState,
+        })
+      });
+      const data = await resp.json();
+      const game = data.gamification;
+      if (!game) {
+        return;
+      }
+      document.getElementById('habitPoints').textContent = `${game.total_points} pts`;
+      document.getElementById('loggingStreak').textContent = `${game.logging_streak} days`;
+      document.getElementById('resetStreak').textContent = `${game.reset_streak} days`;
+      document.getElementById('weeklyGoal').textContent = `${game.weekly_goal.current}/${game.weekly_goal.target}`;
+      const goalBar = document.getElementById('goalProgressBar');
+      if (goalBar) {
+        const ratio = game.weekly_goal.target ? (game.weekly_goal.current / game.weekly_goal.target) * 100 : 0;
+        goalBar.style.width = `${Math.min(100, ratio)}%`;
+      }
+    } finally {
+      completeReset.disabled = false;
+    }
+  });
+}
+</script>
+{% endblock %}

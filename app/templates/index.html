@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Welcome - Echo_Nest{% endblock %}
+{% block body_attrs %}data-dominant-state="peace" data-page="home"{% endblock %}
+{% block content %}
+<section class="home-shell">
+  <div class="home-hero">
+    <span class="home-kicker">AI Wellness Companion</span>
+    <h1 class="home-title">
+      Notice your patterns sooner.
+      <span class="home-title-accent">Recover with more support and less guesswork.</span>
+    </h1>
+    <p class="home-lead-in">Mood tracking, but with context, coaching, and a gentler next step.</p>
+    <p class="home-subtitle">
+      Echo_Nest connects sleep, mood logs, activities, streaks, and reflective notes so you can spot rough patches earlier, get supportive AI responses, and build recovery habits that actually feel realistic.
+    </p>
+
+    <div class="home-actions">
+      {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Create Account</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">Sign In</a>
+      {% else %}
+        <a href="{{ url_for('mood.log') }}" class="btn btn-primary">Log Today's Mood</a>
+        <a href="{{ url_for('mood.dashboard') }}" class="btn btn-outline-secondary">Open Dashboard</a>
+      {% endif %}
+    </div>
+
+    <div class="home-proof-row">
+      <span class="home-proof-pill">Sleep-aware support</span>
+      <span class="home-proof-pill">CBT-style reframes</span>
+      <span class="home-proof-pill">Adaptive resets</span>
+      <span class="home-proof-pill">Music and journal insights</span>
+    </div>
+
+    <div class="home-grid">
+      <div class="home-stat">
+        <span class="home-stat-label">Track</span>
+        <span class="home-stat-value">Mood, sleep, routines, and emotional notes</span>
+      </div>
+      <div class="home-stat">
+        <span class="home-stat-label">Understand</span>
+        <span class="home-stat-value">Trends, state shifts, streak drops, and recurring concerns</span>
+      </div>
+      <div class="home-stat">
+        <span class="home-stat-label">Respond</span>
+        <span class="home-stat-value">Small actions, supportive prompts, and recovery goals</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-panel">
+    <div class="home-card">
+      <p class="eyebrow mb-2">Product Glimpse</p>
+      <h3 class="mb-3">What Echo_Nest does after a hard day</h3>
+      <div class="home-preview-stack">
+        <div class="home-preview-card">
+          <span class="home-preview-label">Companion</span>
+          <p class="mb-0">“Your recent sleep average is low and your mood trend is cooling. Keep tonight simple: water, one calming track, and a ten-minute reset.”</p>
+        </div>
+        <div class="home-preview-card">
+          <span class="home-preview-label">Journal Insight</span>
+          <p class="mb-0">Recurring themes: stress, poor sleep, and self-pressure. Your writing sounds sharper on low-rest days.</p>
+        </div>
+        <div class="home-preview-metrics">
+          <div>
+            <span class="home-preview-metric-label">Reset streak</span>
+            <strong>4 days</strong>
+          </div>
+          <div>
+            <span class="home-preview-metric-label">Dominant state</span>
+            <strong>Focus</strong>
+          </div>
+          <div>
+            <span class="home-preview-metric-label">Weekly goal</span>
+            <strong>3/4 complete</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-card">
+      <p class="eyebrow mb-2">Why It Lands Better</p>
+      <h4 class="mb-2">Built for reflection, not overwhelm</h4>
+      <ul class="home-list">
+        <li><span class="home-dot"></span><span>Capture how your day felt with context instead of flattening everything into one score.</span></li>
+        <li><span class="home-dot"></span><span>Detect emotional friction like poor sleep, sadness, anger, or mental fog before it snowballs.</span></li>
+        <li><span class="home-dot"></span><span>Get music suggestions, journaling prompts, CBT-style reframes, and small actions matched to the moment.</span></li>
+      </ul>
+    </div>
+
+    <div class="home-card home-card-wide">
+      <div class="home-card-split">
+        <div>
+          <p class="eyebrow mb-2">Mood Palette</p>
+          <h4 class="mb-2">A softer emotional language with actions attached</h4>
+          <p class="mb-0">Each state is color-coded, easier to scan, and tied to a practical next step instead of just a label.</p>
+        </div>
+        <div class="home-mood-ribbon">
+          <span class="home-ribbon-pill ribbon-calm">Calm</span>
+          <span class="home-ribbon-pill ribbon-energy">Energy</span>
+          <span class="home-ribbon-pill ribbon-happy">Happiness</span>
+          <span class="home-ribbon-pill ribbon-focus">Focus</span>
+          <span class="home-ribbon-pill ribbon-peace">Peace</span>
+          <span class="home-ribbon-pill ribbon-sad">Sad</span>
+          <span class="home-ribbon-pill ribbon-angry">Angry</span>
+          <span class="home-ribbon-pill ribbon-gloomy">Gloomy</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-card home-card-wide">
+      <p class="eyebrow mb-2">How It Works</p>
+      <h4 class="mb-2">Less like a tracker. More like a supportive recovery loop.</h4>
+      <div class="home-flow">
+        <div class="home-flow-step">
+          <strong>1. Log with context</strong>
+          <p class="mb-0">Add mood, sleep, screen time, activities, and notes.</p>
+        </div>
+        <div class="home-flow-step">
+          <strong>2. Understand the pattern</strong>
+          <p class="mb-0">See what is shifting and what keeps showing up.</p>
+        </div>
+        <div class="home-flow-step">
+          <strong>3. Get the next step</strong>
+          <p class="mb-0">Receive a reset, reframe, soundtrack, or prompt matched to your state.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
