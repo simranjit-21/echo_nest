@@ -562,6 +562,57 @@
       50% { transform: scale(1.01); }
     }
 
+    .flash-stack {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.25rem;
+      z-index: 1080;
+      display: grid;
+      gap: 0.75rem;
+      width: min(360px, calc(100vw - 2rem));
+    }
+
+    .flash-toast {
+      margin: 0;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 1rem;
+      box-shadow: 0 18px 42px rgba(21, 32, 43, 0.14);
+      backdrop-filter: blur(16px) saturate(1.05);
+      animation: flashSlideIn 180ms ease;
+    }
+
+    .flash-toast.alert-success {
+      background: rgba(126, 223, 192, 0.92);
+      color: #1f3d35;
+    }
+
+    .flash-toast.alert-info {
+      background: rgba(201, 228, 255, 0.94);
+      color: #28465d;
+    }
+
+    .flash-toast.alert-warning {
+      background: rgba(248, 199, 132, 0.94);
+      color: #5b3a14;
+    }
+
+    .flash-toast.alert-danger,
+    .flash-toast.alert-error {
+      background: rgba(233, 130, 130, 0.94);
+      color: #4d1f1f;
+    }
+
+    @keyframes flashSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     @media (max-width: 767px) {
       .magic-orb:nth-child(n + 15) {
         display: none;
@@ -630,23 +681,35 @@
     </div>
   </nav>
 
-  <main class="container">
-    {% with messages = get_flashed_messages(with_categories=True) %}
-      {% if messages %}
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+      <div class="flash-stack" aria-live="polite" aria-atomic="true">
         {% for category, msg in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          <div class="alert alert-{{ category }} alert-dismissible fade show flash-toast" role="alert" data-auto-dismiss="2500">
             {{ msg }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
         {% endfor %}
-      {% endif %}
-    {% endwith %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
+  <main class="container">
     {% block content %}{% endblock %}
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    (() => {
+      document.querySelectorAll('[data-auto-dismiss]').forEach((node) => {
+        const delay = Number(node.getAttribute('data-auto-dismiss')) || 2500;
+        window.setTimeout(() => {
+          const alert = bootstrap.Alert.getOrCreateInstance(node);
+          alert.close();
+        }, delay);
+      });
+    })();
+
     (() => {
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (reduceMotion) {
