@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: echo-nest
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:///var/data/echo_nest.db
+      - key: LOG_LEVEL
+        value: INFO
+      - key: HOST
+        value: 0.0.0.0
+    disk:
+      name: echo-nest-data
+      mountPath: /var/data
+      sizeGB: 1

@@ -364,6 +364,7 @@ See [app/models.py](/e:/echo_nest/app/models.py:1).
 
 ### Pages
 - `/`: landing page
+- `/healthz`: deployment health check
 - `/auth/register`: register
 - `/auth/login`: login
 - `/log`: create mood entry
@@ -396,6 +397,7 @@ I also verified:
 - edit/delete entry flow
 - `.env` loading behavior
 - historical analytics summary generation
+- health check endpoint
 - `/api/predict`
 - `/api/companion/chat`
 - `/api/habit/complete`
@@ -409,12 +411,62 @@ The app was also smoke-tested through Flask's test client for:
 ## Notes
 
 - The app uses SQLite by default.
+- For production, SQLite needs persistent disk storage. If you deploy to an ephemeral filesystem without a disk, your data will reset on restart.
 - The local test environment may still be missing some `pytest` dependencies, so compile checks and Flask test-client smoke tests were used for validation.
 - OpenAI, Spotify, and YouTube support are optional enhancements, not hard requirements.
 - The current journaling system is hybrid:
   live LLM analysis when configured, local rules when not.
 - The music system is also hybrid:
   live provider results when configured, smart links when not.
+
+## Deploy
+
+### Quick Render Deploy
+
+This repo now includes:
+
+- [wsgi.py](/e:/echo_nest/wsgi.py:1)
+- [Procfile](/e:/echo_nest/Procfile:1)
+- [render.yaml](/e:/echo_nest/render.yaml:1)
+- [runtime.txt](/e:/echo_nest/runtime.txt:1)
+
+The simplest path is Render:
+
+1. Push this repo to GitHub.
+2. In Render, create a new `Blueprint` deploy from the repo.
+3. Render will pick up [render.yaml](/e:/echo_nest/render.yaml:1).
+4. Add any optional env vars you want:
+   `OPENAI_API_KEY`, `OPENAI_MODEL`, `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `YOUTUBE_API_KEY`
+5. Deploy.
+
+Important:
+
+- `SECRET_KEY` is generated automatically in Render.
+- `DATABASE_URL` is configured to use a mounted disk path: `sqlite:///var/data/echo_nest.db`
+- The health check endpoint is `/healthz`
+
+### Generic Python Host
+
+If your host supports `gunicorn`, use:
+
+```bash
+pip install -r requirements.txt
+gunicorn wsgi:app --bind 0.0.0.0:$PORT
+```
+
+Recommended production env vars:
+
+```env
+SECRET_KEY=use-a-long-random-secret
+DATABASE_URL=sqlite:///absolute/persistent/path/echo_nest.db
+HOST=0.0.0.0
+PORT=10000
+LOG_LEVEL=INFO
+```
+
+### If You Want Stronger Production Storage
+
+SQLite is fine for demos and small deployments, but for a more serious deploy you should eventually move to PostgreSQL. The current code already reads `DATABASE_URL`, so that migration path is open.
 
 ## Future Improvements
 

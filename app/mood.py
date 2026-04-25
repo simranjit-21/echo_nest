@@ -109,6 +109,11 @@ def index():
     return render_template("index.html")
 
 
+@mood_bp.route("/healthz")
+def healthz():
+    return jsonify({"status": "ok"}), 200
+
+
 @mood_bp.route("/log", methods=["GET", "POST"])
 @login_required
 def log():

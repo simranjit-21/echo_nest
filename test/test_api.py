@@ -44,6 +44,14 @@ def test_register_and_login(client):
     assert r.status_code == 302
 
 
+def test_healthz_returns_ok(client):
+    r = client.get("/healthz")
+    data = json.loads(r.data)
+
+    assert r.status_code == 200
+    assert data["status"] == "ok"
+
+
 def test_login_honors_safe_next_redirect(client):
     client.post("/auth/register", data={"email": "next@example.com", "password": "secret"})
 

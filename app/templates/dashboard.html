@@ -557,6 +557,9 @@ async function loadForecast() {
   document.dispatchEvent(new CustomEvent('echo-loading-start'));
   try {
     const resp = await fetch('/api/predict');
+    if (!resp.ok) {
+      throw new Error(`Forecast request failed with status ${resp.status}`);
+    }
     const data = await resp.json();
 
     document.getElementById('predMood').textContent = data.predicted_mood.toFixed(1);
@@ -592,6 +595,12 @@ async function loadForecast() {
     } else {
       document.getElementById('shapChart').innerHTML = '<p class="muted-copy mb-0">Forecast explanations will appear once the model has enough confident history.</p>';
     }
+  } catch (error) {
+    console.error('Forecast load failed:', error);
+    document.getElementById('predMood').textContent = '-';
+    document.getElementById('predConf').textContent = 'Unavailable';
+    document.getElementById('predState').textContent = 'Forecast unavailable';
+    document.getElementById('shapChart').innerHTML = '<p class="muted-copy mb-0">Forecast is unavailable right now, but the rest of your dashboard is still available.</p>';
   } finally {
     document.dispatchEvent(new CustomEvent('echo-loading-end'));
   }

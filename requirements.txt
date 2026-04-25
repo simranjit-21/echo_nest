@@ -10,3 +10,4 @@ torch
 opencv-python
 pytest
 waitress
+gunicorn

@@ -17,5 +17,8 @@ if (-not $env:DATABASE_URL) {
     $env:DATABASE_URL = "sqlite:///echo_nest.db"
 }
 
-Write-Host "Starting Echo_Nest at http://127.0.0.1:5000"
+$hostAddress = if ($env:HOST) { $env:HOST } else { "127.0.0.1" }
+$portNumber = if ($env:PORT) { $env:PORT } else { "5000" }
+
+Write-Host "Starting Echo_Nest at http://$hostAddress`:$portNumber"
 & $python run.py
