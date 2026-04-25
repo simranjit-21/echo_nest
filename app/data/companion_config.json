@@ -1,0 +1,156 @@
+{
+  "supportive_openers": {
+    "calm": "You have a steadier baseline right now, so this is a good moment to reinforce what is already working.",
+    "energy": "You are carrying more activation today, which we can turn into something supportive instead of scattered.",
+    "happiness": "There is some lift in your recent data, and it is worth helping that feeling stick.",
+    "focus": "Your recent pattern shows usable mental clarity, so let us make the next action deliberate.",
+    "peace": "Your signals look more settled, which is a good window for gentle reflection.",
+    "sad": "I can see a lower emotional tone in your recent check-ins, so let us keep this response gentle and practical.",
+    "angry": "Your recent pattern suggests frustration or overload, so we will start by reducing intensity before solving anything.",
+    "gloomy": "Your logs suggest low energy and emotional fog, so the goal is a tiny caring action instead of pressure."
+  },
+  "micro_activity_library": {
+    "calm": [
+      {
+        "title": "Two-minute body scan",
+        "reason": "Keeps a stable baseline from drifting.",
+        "duration": 120
+      },
+      {
+        "title": "Name three steadying things",
+        "reason": "Reinforces what is already helping.",
+        "duration": 90
+      }
+    ],
+    "energy": [
+      {
+        "title": "Channel the surge",
+        "reason": "Use activation for one intentional win before it scatters.",
+        "duration": 180
+      },
+      {
+        "title": "Fast reset walk",
+        "reason": "Converts restless energy into momentum.",
+        "duration": 180
+      }
+    ],
+    "happiness": [
+      {
+        "title": "Save the high point",
+        "reason": "Turns a good moment into a memory anchor.",
+        "duration": 120
+      },
+      {
+        "title": "Send one warm message",
+        "reason": "Spreads the positive state socially.",
+        "duration": 120
+      }
+    ],
+    "focus": [
+      {
+        "title": "Ten-minute single-task sprint",
+        "reason": "Protects the clearest part of your attention.",
+        "duration": 600
+      },
+      {
+        "title": "Close one tab, start one task",
+        "reason": "Prevents overstimulation from interrupting focus.",
+        "duration": 120
+      }
+    ],
+    "peace": [
+      {
+        "title": "Soft reflection note",
+        "reason": "Helps you understand what created the calm.",
+        "duration": 180
+      },
+      {
+        "title": "Slow exhale reset",
+        "reason": "Keeps the nervous system settled.",
+        "duration": 120
+      }
+    ],
+    "sad": [
+      {
+        "title": "Five-minute sunlight break",
+        "reason": "Adds a low-friction lift when everything feels heavy.",
+        "duration": 300
+      },
+      {
+        "title": "Text one safe person",
+        "reason": "Creates connection without asking for a big effort.",
+        "duration": 120
+      }
+    ],
+    "angry": [
+      {
+        "title": "Ninety-second decompression",
+        "reason": "Lowers charge before you reply, decide, or argue.",
+        "duration": 90
+      },
+      {
+        "title": "Cold water pause",
+        "reason": "Interrupts the escalation loop physically.",
+        "duration": 120
+      }
+    ],
+    "gloomy": [
+      {
+        "title": "Fog-breaker task",
+        "reason": "Gives you a tiny completion when motivation is low.",
+        "duration": 180
+      },
+      {
+        "title": "Open blinds and move",
+        "reason": "Builds momentum without needing motivation first.",
+        "duration": 120
+      }
+    ]
+  },
+  "music_library": {
+    "calm": [
+      ["Acoustic grounding session", "gentle acoustic calm focus playlist"],
+      ["Soft instrumental reset", "soft instrumental grounding playlist"]
+    ],
+    "energy": [
+      ["Forward-motion mix", "motivational upbeat indie energy playlist"],
+      ["Creative sprint mix", "focus electronic productivity playlist"]
+    ],
+    "happiness": [
+      ["Sunlit serotonin mix", "feel good upbeat playlist"],
+      ["Good-day groove", "happy pop groove playlist"]
+    ],
+    "focus": [
+      ["Deep work lo-fi", "lofi beats deep focus playlist"],
+      ["Minimal flow set", "minimal ambient focus playlist"]
+    ],
+    "peace": [
+      ["Quiet evening calm", "peaceful ambient wind down playlist"],
+      ["Breathing room", "healing piano calm playlist"]
+    ],
+    "sad": [
+      ["Gentle comfort lo-fi", "comforting lofi for hard days playlist"],
+      ["Soft recovery piano", "healing piano emotional reset playlist"]
+    ],
+    "angry": [
+      ["De-escalation lo-fi", "calming lofi stress relief playlist"],
+      ["Slow heartbeat ambient", "ambient breathing relaxation playlist"]
+    ],
+    "gloomy": [
+      ["Morning lift playlist", "upbeat gentle morning energy playlist"],
+      ["Tiny momentum mix", "light indie motivation playlist"]
+    ]
+  },
+  "concern_map": {
+    "sleep": ["tired", "insomnia", "sleep", "restless", "exhausted", "drained"],
+    "stress": ["stressed", "pressure", "overwhelmed", "deadline", "burnout", "anxious"],
+    "loneliness": ["alone", "lonely", "isolated", "disconnected"],
+    "anger": ["angry", "frustrated", "annoyed", "resentful", "furious"],
+    "self-worth": ["failure", "worthless", "useless", "behind", "not enough"]
+  },
+  "negative_thought_markers": {
+    "all_or_nothing": ["always", "never", "ruined", "everything"],
+    "self_blame": ["my fault", "i failed", "i am the problem", "i always mess up"],
+    "hopelessness": ["nothing will change", "no point", "cannot do this", "stuck"]
+  }
+}

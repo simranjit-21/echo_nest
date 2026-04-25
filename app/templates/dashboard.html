@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}Your Dashboard{% endblock %}
 {% block body_attrs %}data-dominant-state="{{ summary.dominant_state.palette }}"{% endblock %}
 {% block content %}
@@ -184,6 +184,60 @@
 </div>
 
 <div class="row g-4 mt-1">
+  <div class="col-12">
+    <div class="card surface-card h-100">
+      <div class="card-body">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow mb-1">Historical Analytics</p>
+            <h5 class="card-title mb-0">Longer-range patterns instead of just the latest mood</h5>
+          </div>
+        </div>
+        <p class="mb-3">{{ summary.historical_analytics.headline }}</p>
+        <div class="suggestion-stack">
+          {% for item in summary.historical_analytics.signals %}
+            <div class="suggestion-card">{{ item }}</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-5">
+    <div class="card surface-card h-100">
+      <div class="card-body">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow mb-1">Weekly Reflection</p>
+            <h5 class="card-title mb-0">A calmer recap of what this week is actually saying</h5>
+          </div>
+        </div>
+        <p class="mb-3">{{ summary.weekly_reflection.headline }}</p>
+        <div class="reflection-grid">
+          <div class="mini-panel">
+            <span class="metric-label">Wins</span>
+            {% if summary.weekly_reflection.wins %}
+              {% for item in summary.weekly_reflection.wins %}
+                <div class="micro-step">{{ item }}</div>
+              {% endfor %}
+            {% else %}
+              <p class="muted-copy mb-0">Wins will appear once there is more weekly signal.</p>
+            {% endif %}
+          </div>
+          <div class="mini-panel">
+            <span class="metric-label">Watchouts</span>
+            {% if summary.weekly_reflection.watchouts %}
+              {% for item in summary.weekly_reflection.watchouts %}
+                <div class="micro-step">{{ item }}</div>
+              {% endfor %}
+            {% else %}
+              <p class="muted-copy mb-0">No big watchouts this week.</p>
+            {% endif %}
+          </div>
+        </div>
+        <div class="suggestion-card mt-3">{{ summary.weekly_reflection.next_step }}</div>
+      </div>
+    </div>
+  </div>
   <div class="col-12 col-xl-7">
     <div class="card surface-card h-100">
       <div class="card-body">
@@ -204,11 +258,13 @@
           {% endfor %}
         </div>
         <div class="mt-4">
-          <label class="form-label" for="companionMessage">Talk to your companion</label>
-          <div class="companion-chat-row">
-            <textarea id="companionMessage" class="form-control" rows="3" placeholder="What feels hardest right now?"></textarea>
-            <button type="button" class="btn btn-primary" id="companionSend">Get support</button>
-          </div>
+          <form method="post" action="{{ url_for('mood.dashboard_companion') }}" id="companionForm">
+            <label class="form-label" for="companionMessage">Talk to your companion</label>
+            <div class="companion-chat-row">
+              <textarea id="companionMessage" name="message" class="form-control" rows="3" placeholder="What feels hardest right now?">{{ companion_message or '' }}</textarea>
+              <button type="submit" class="btn btn-primary" id="companionSend">Get support</button>
+            </div>
+          </form>
         </div>
         <div class="row g-3 mt-2">
           <div class="col-12 col-lg-6">
@@ -230,7 +286,9 @@
       </div>
     </div>
   </div>
+</div>
 
+<div class="row g-4 mt-1">
   <div class="col-12 col-xl-5">
     <div class="card surface-card h-100">
       <div class="card-body">
@@ -271,9 +329,7 @@
       </div>
     </div>
   </div>
-</div>
 
-<div class="row g-4 mt-1">
   <div class="col-12 col-xl-7">
     <div class="card surface-card h-100">
       <div class="card-body">
@@ -320,7 +376,66 @@
       </div>
     </div>
   </div>
+</div>
 
+<div class="row g-4 mt-1">
+  <div class="col-12">
+    <div class="card surface-card h-100">
+      <div class="card-body">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow mb-1">Recent Entries</p>
+            <h5 class="card-title mb-0">Edit your logs and see why each state was assigned</h5>
+          </div>
+        </div>
+        {% if recent_entries %}
+          <div class="entry-stack">
+            {% for entry in recent_entries %}
+              <div class="entry-card">
+                <div class="entry-header">
+                  <div>
+                    <strong>{{ entry.date }}</strong>
+                    <div class="muted-copy">Mood {{ entry.mood }}/5</div>
+                  </div>
+                  <div class="entry-actions">
+                    <span class="state-pill state-pill-{{ entry.state.palette }}">{{ entry.state.label }}</span>
+                    <a href="{{ url_for('mood.edit_entry', entry_id=entry.id) }}" class="btn btn-outline-secondary btn-sm">Edit</a>
+                    <form method="post" action="{{ url_for('mood.delete_entry', entry_id=entry.id) }}">
+                      <button type="submit" class="btn btn-outline-secondary btn-sm">Delete</button>
+                    </form>
+                  </div>
+                </div>
+                <div class="row g-3 mt-1">
+                  <div class="col-12 col-lg-6">
+                    <div class="mini-panel">
+                      <span class="metric-label">Why This State?</span>
+                      {% for reason in entry.explanation.reasons %}
+                        <div class="micro-step">{{ reason }}</div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <div class="col-12 col-lg-6">
+                    <div class="mini-panel">
+                      <span class="metric-label">Signals</span>
+                      <div class="micro-step">Sleep: {{ entry.sleep_hours if entry.sleep_hours is not none else 'n/a' }}</div>
+                      <div class="micro-step">Interaction: {{ entry.interaction_level if entry.interaction_level is not none else 'n/a' }}</div>
+                      <div class="micro-step">Screen time: {{ entry.screen_time_hours if entry.screen_time_hours is not none else 'n/a' }}</div>
+                      <div class="micro-step">Activities: {{ entry.activities or 'n/a' }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="muted-copy mb-0">Your saved entries will appear here once you start logging.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
   <div class="col-12 col-xl-5">
     <div class="card surface-card h-100">
       <div class="card-body">
@@ -391,41 +506,49 @@ const stateColors = {
 };
 const chartCanvas = document.getElementById('trendChart');
 
-if (chartCanvas && moods.length) {
-  document.dispatchEvent(new CustomEvent('echo-loading-start'));
-  const ctx = chartCanvas.getContext('2d');
-  const gradient = ctx.createLinearGradient(0, 0, 0, 220);
-  gradient.addColorStop(0, 'rgba(255, 183, 165, 0.45)');
-  gradient.addColorStop(1, 'rgba(255, 183, 165, 0.02)');
+if (chartCanvas && moods.length && typeof window.Chart !== 'undefined') {
+  try {
+    document.dispatchEvent(new CustomEvent('echo-loading-start'));
+    const ctx = chartCanvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+    gradient.addColorStop(0, 'rgba(255, 183, 165, 0.45)');
+    gradient.addColorStop(1, 'rgba(255, 183, 165, 0.02)');
 
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: dates,
-      datasets: [{
-        label: 'Mood (1-5)',
-        data: moods,
-        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
-        backgroundColor: gradient,
-        pointBackgroundColor: entries.map(e => stateColors[e.state.key] || stateColors.calm),
-        pointBorderColor: entries.map(e => stateColors[e.state.key] || stateColors.calm),
-        tension: 0.35,
-        fill: true,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: dates,
+        datasets: [{
+          label: 'Mood (1-5)',
+          data: moods,
+          borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+          backgroundColor: gradient,
+          pointBackgroundColor: entries.map(e => stateColors[e.state.key] || stateColors.calm),
+          pointBorderColor: entries.map(e => stateColors[e.state.key] || stateColors.calm),
+          tension: 0.35,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        }]
       },
-      scales: {
-        y: { min: 1, max: 5, ticks: { stepSize: 1 } },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+        },
+        scales: {
+          y: { min: 1, max: 5, ticks: { stepSize: 1 } },
+        }
       }
-    }
-  });
-  document.dispatchEvent(new CustomEvent('echo-loading-end'));
+    });
+  } catch (error) {
+    console.error('Trend chart failed:', error);
+    chartCanvas.parentElement.innerHTML = '<p class="muted-copy mb-0">Trend chart could not load, but the rest of your dashboard is still available.</p>';
+  } finally {
+    document.dispatchEvent(new CustomEvent('echo-loading-end'));
+  }
+} else if (chartCanvas && typeof window.Chart === 'undefined') {
+  chartCanvas.parentElement.innerHTML = '<p class="muted-copy mb-0">Trend chart is unavailable right now, but your companion and other dashboard tools still work.</p>';
 } else if (chartCanvas) {
   chartCanvas.parentElement.innerHTML = '<p class="muted-copy mb-0">Log a few mood entries to unlock your first emotional trendline.</p>';
 }
@@ -444,6 +567,7 @@ async function loadForecast() {
 
     if (data.shap && Object.keys(data.shap).length) {
       const container = document.getElementById('shapChart');
+      container.innerHTML = '';
       const sorted = Object.entries(data.shap)
         .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
         .slice(0, 5);
@@ -525,20 +649,52 @@ if (activityStart && activityTimer && activitySteps.length) {
 const companionResponse = document.getElementById('companionResponse');
 const companionMessage = document.getElementById('companionMessage');
 const companionSend = document.getElementById('companionSend');
+const companionForm = document.getElementById('companionForm');
 
-if (companionSend && companionMessage && companionResponse) {
-  companionSend.addEventListener('click', async () => {
+window.echoSendCompanion = async function echoSendCompanion() {
+  if (!(companionSend && companionMessage && companionResponse)) {
+    return;
+  }
+  if (companionSend.disabled) {
+    return;
+  }
+    const originalLabel = companionSend.textContent;
     companionSend.disabled = true;
+    companionSend.textContent = 'Thinking...';
+    companionResponse.textContent = 'Thinking through your recent patterns...';
     try {
+      const controller = new AbortController();
+      const timeoutHandle = setTimeout(() => controller.abort(), 15000);
       const resp = await fetch('/api/companion/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: companionMessage.value })
+        body: JSON.stringify({ message: companionMessage.value }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutHandle);
+      if (!resp.ok) {
+        throw new Error(`Companion request failed with status ${resp.status}`);
+      }
       const data = await resp.json();
-      companionResponse.textContent = data.response;
+      companionResponse.textContent = data.response || 'The companion did not return a message this time.';
+    } catch (error) {
+      companionResponse.textContent = 'The companion could not respond just now. Please try again in a moment.';
+      console.error('Companion chat failed:', error);
     } finally {
       companionSend.disabled = false;
+      companionSend.textContent = originalLabel;
+    }
+};
+
+if (companionForm && companionSend && companionMessage && companionResponse) {
+  companionForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    await window.echoSendCompanion();
+  });
+  companionMessage.addEventListener('keydown', (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+      event.preventDefault();
+      window.echoSendCompanion();
     }
   });
 }

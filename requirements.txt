@@ -1,0 +1,12 @@
+flask
+flask-login
+sqlmodel
+sqlalchemy
+werkzeug
+numpy
+joblib
+shap
+torch
+opencv-python
+pytest
+waitress

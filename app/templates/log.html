@@ -1,58 +1,92 @@
-﻿{% extends "base.html" %}
-{% block title %}Log Mood{% endblock %}
+{% extends "base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit Entry{% else %}Log Mood{% endif %}{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-lg-8">
     <div class="card surface-card">
       <div class="card-body p-4 p-lg-5">
         <p class="eyebrow mb-2">Daily Reflection</p>
-        <h2 class="mb-3 text-primary">Log your emotional state with context.</h2>
+        <h2 class="mb-3 text-primary">{% if mode == 'edit' %}Update your emotional entry with clearer context.{% else %}Log your emotional state with context.{% endif %}</h2>
         <p class="muted-copy mb-4">Echo_Nest now reads your day through intensity, sleep, activity, and interaction rhythm so the mood story feels more human than a one-number score.</p>
-    <form method="post">
-      <div class="row g-4">
-        <div class="col-md-6">
-          <label class="form-label" for="mood">Emotional Intensity (1-5)</label>
-          <input id="mood" type="number" name="mood" min="1" max="5" class="form-control" required>
-          <div class="form-text">1 = low activation, 5 = highly elevated.</div>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label" for="sleep_hours">Sleep Hours</label>
-          <input id="sleep_hours" type="number" name="sleep_hours" min="0" max="24" step="0.5" class="form-control" placeholder="7.5">
-          <div class="form-text">Helps distinguish peace from fatigue-driven calm.</div>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label" for="interaction_level">Interaction Level (1-5)</label>
-          <input id="interaction_level" type="number" name="interaction_level" min="1" max="5" class="form-control" placeholder="3">
-          <div class="form-text">Tracks how socially engaged the day felt.</div>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label" for="screen_time_hours">Screen Time Hours</label>
-          <input id="screen_time_hours" type="number" name="screen_time_hours" min="0" max="24" step="0.5" class="form-control" placeholder="4">
-          <div class="form-text">Useful for understanding focus vs overstimulation.</div>
-        </div>
-        <div class="col-12">
-          <label class="form-label" for="activities">Activities</label>
-          <input id="activities" type="text" name="activities" class="form-control" placeholder="Walk, music, journaling, deep work">
-          <div class="form-text">Comma-separated activities help classify calm, energy, focus, and peace states.</div>
-        </div>
-        <div class="col-12">
-          <div class="state-legend">
-            <span class="state-pill state-pill-calm">Calm</span>
-            <span class="state-pill state-pill-energy">Energy</span>
-            <span class="state-pill state-pill-happy">Happiness</span>
-            <span class="state-pill state-pill-focus">Focus</span>
-            <span class="state-pill state-pill-peace">Peace</span>
+        <div class="onboarding-panel mb-4">
+          <div>
+            <strong>Quick onboarding</strong>
+            <p class="muted-copy mb-0">Use the chips below if you are not sure what to write. They are just shortcuts, not required fields.</p>
+          </div>
+          <div class="chip-row">
+            <button type="button" class="btn btn-outline-secondary btn-sm onboarding-chip" data-target="activities" data-value="walk">Walk</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm onboarding-chip" data-target="activities" data-value="journaling">Journaling</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm onboarding-chip" data-target="activities" data-value="deep work">Deep Work</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm onboarding-chip" data-target="activities" data-value="friends">Friends</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm onboarding-chip" data-target="notes" data-value="I felt overwhelmed after too much screen time.">Overwhelmed note</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm onboarding-chip" data-target="notes" data-value="I felt calmer after a small reset.">Calm note</button>
           </div>
         </div>
-        <div class="col-12">
-          <label class="form-label" for="notes">Notes</label>
-          <textarea id="notes" name="notes" class="form-control" rows="4" placeholder="How did today feel, and what shaped it?"></textarea>
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primary w-100 mt-4">Save Reflection</button>
-    </form>
+        <form method="post">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <label class="form-label" for="mood">Emotional Intensity (1-5)</label>
+              <input id="mood" type="number" name="mood" min="1" max="5" class="form-control" required value="{{ form_values.mood }}">
+              <div class="form-text">1 = low activation, 5 = highly elevated.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="sleep_hours">Sleep Hours</label>
+              <input id="sleep_hours" type="number" name="sleep_hours" min="0" max="24" step="0.5" class="form-control" placeholder="7.5" value="{{ form_values.sleep_hours }}">
+              <div class="form-text">Helps distinguish peace from fatigue-driven calm.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="interaction_level">Interaction Level (1-5)</label>
+              <input id="interaction_level" type="number" name="interaction_level" min="1" max="5" class="form-control" placeholder="3" value="{{ form_values.interaction_level }}">
+              <div class="form-text">Tracks how socially engaged the day felt.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="screen_time_hours">Screen Time Hours</label>
+              <input id="screen_time_hours" type="number" name="screen_time_hours" min="0" max="24" step="0.5" class="form-control" placeholder="4" value="{{ form_values.screen_time_hours }}">
+              <div class="form-text">Useful for understanding focus vs overstimulation.</div>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="activities">Activities</label>
+              <input id="activities" type="text" name="activities" class="form-control" placeholder="Walk, music, journaling, deep work" value="{{ form_values.activities }}">
+              <div class="form-text">Comma-separated activities help classify calm, energy, focus, and peace states.</div>
+            </div>
+            <div class="col-12">
+              <div class="state-legend">
+                <span class="state-pill state-pill-calm">Calm</span>
+                <span class="state-pill state-pill-energy">Energy</span>
+                <span class="state-pill state-pill-happy">Happiness</span>
+                <span class="state-pill state-pill-focus">Focus</span>
+                <span class="state-pill state-pill-peace">Peace</span>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="notes">Notes</label>
+              <textarea id="notes" name="notes" class="form-control" rows="4" placeholder="How did today feel, and what shaped it?">{{ form_values.notes }}</textarea>
+              <div class="form-text">Prompt ideas: What shifted your energy? What helped even a little? What made the day feel heavier or lighter?</div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 mt-4">{% if mode == 'edit' %}Update Reflection{% else %}Save Reflection{% endif %}</button>
+        </form>
       </div>
     </div>
   </div>
 </div>
+<script>
+document.querySelectorAll('.onboarding-chip').forEach((chip) => {
+  chip.addEventListener('click', () => {
+    const target = document.getElementById(chip.dataset.target);
+    if (!target) return;
+    const value = chip.dataset.value || '';
+    if (chip.dataset.target === 'activities') {
+      const current = target.value.trim();
+      const next = current ? `${current}, ${value}` : value;
+      if (!current.toLowerCase().split(',').map(v => v.trim()).includes(value.toLowerCase())) {
+        target.value = next;
+      }
+    } else {
+      target.value = value;
+    }
+    target.focus();
+  });
+});
+</script>
 {% endblock %}

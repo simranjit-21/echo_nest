@@ -1,0 +1,158 @@
+{
+  "state_meta": {
+    "calm": {
+      "label": "Calm",
+      "palette": "calm",
+      "description": "Balanced, settled, and emotionally steady."
+    },
+    "energy": {
+      "label": "Energy",
+      "palette": "energy",
+      "description": "Activated, social, and ready to move."
+    },
+    "happiness": {
+      "label": "Happiness",
+      "palette": "happy",
+      "description": "Light, upbeat, and emotionally open."
+    },
+    "focus": {
+      "label": "Focus",
+      "palette": "focus",
+      "description": "Clear, productive, and mentally engaged."
+    },
+    "peace": {
+      "label": "Peace",
+      "palette": "peace",
+      "description": "Rested, safe, and quietly content."
+    },
+    "sad": {
+      "label": "Sad",
+      "palette": "sad",
+      "description": "Emotionally low, reflective, and needing gentle support."
+    },
+    "angry": {
+      "label": "Angry",
+      "palette": "angry",
+      "description": "Activated, frustrated, and carrying sharp emotional charge."
+    },
+    "gloomy": {
+      "label": "Gloomy",
+      "palette": "gloomy",
+      "description": "Flat, drained, and muted by stress or emotional fog."
+    }
+  },
+  "positive_sentiment_tokens": [
+    "good",
+    "great",
+    "calm",
+    "better",
+    "happy",
+    "grateful",
+    "clear",
+    "focused",
+    "hopeful",
+    "rested",
+    "peaceful"
+  ],
+  "negative_sentiment_tokens": [
+    "sad",
+    "angry",
+    "tired",
+    "overwhelmed",
+    "stressed",
+    "upset",
+    "lonely",
+    "drained",
+    "bad",
+    "frustrated",
+    "anxious",
+    "heavy",
+    "foggy"
+  ],
+  "activity_groups": {
+    "restorative": [
+      "walk",
+      "music",
+      "meditation",
+      "journaling",
+      "reading",
+      "nature",
+      "yoga"
+    ],
+    "productive": [
+      "study",
+      "coding",
+      "deep work",
+      "reading",
+      "planning",
+      "writing"
+    ],
+    "social": [
+      "friends",
+      "family",
+      "call",
+      "meeting",
+      "team",
+      "hangout",
+      "party"
+    ]
+  },
+  "micro_activities": {
+    "calm": {
+      "title": "Box Breath Reset",
+      "prompt": "Breathe in for 4, hold for 4, out for 4, hold for 4. Repeat four rounds.",
+      "steps": ["Inhale 4", "Hold 4", "Exhale 4", "Hold 4"],
+      "duration": 64,
+      "button": "Start breathing cycle"
+    },
+    "energy": {
+      "title": "Momentum Sprint",
+      "prompt": "Use your current energy on one small win: tidy, stretch, or ship one unfinished task.",
+      "steps": ["Pick one win", "Move for 30 sec", "Finish it", "Mark it done"],
+      "duration": 90,
+      "button": "Start sprint"
+    },
+    "happiness": {
+      "title": "Amplify the Good",
+      "prompt": "Lock in the high by naming one win, one person, and one moment worth remembering.",
+      "steps": ["Name a win", "Name a person", "Name a moment", "Save it mentally"],
+      "duration": 75,
+      "button": "Start gratitude loop"
+    },
+    "focus": {
+      "title": "Two-Minute Focus Lock",
+      "prompt": "Silence one distraction and commit to two minutes of deep attention on the next action.",
+      "steps": ["Mute distraction", "Choose next action", "Work 120 sec", "Check progress"],
+      "duration": 120,
+      "button": "Start focus timer"
+    },
+    "peace": {
+      "title": "Gentle Reflection",
+      "prompt": "Stay in the pocket. Breathe slowly and note what made today feel safe or clear.",
+      "steps": ["Shoulders down", "Slow inhale", "Slow exhale", "Name one stabilizer"],
+      "duration": 80,
+      "button": "Start reflection"
+    },
+    "sad": {
+      "title": "Small Lift Challenge",
+      "prompt": "Pick the smallest caring action available: water, sunlight, or one supportive message.",
+      "steps": ["Stand up", "Drink water", "Message one person", "Take 5 slow breaths"],
+      "duration": 90,
+      "button": "Start lift challenge"
+    },
+    "angry": {
+      "title": "Decompression Drill",
+      "prompt": "Release charge before reacting: unclench jaw, drop shoulders, breathe long on the exhale.",
+      "steps": ["Unclench jaw", "Drop shoulders", "Exhale 6", "Delay reaction 2 min"],
+      "duration": 75,
+      "button": "Start decompression"
+    },
+    "gloomy": {
+      "title": "Fog Breaker",
+      "prompt": "Beat the emotional fog with light motion and one concrete action you can finish fast.",
+      "steps": ["Open blinds", "Walk 1 minute", "Pick one tiny task", "Finish it"],
+      "duration": 90,
+      "button": "Start fog breaker"
+    }
+  }
+}

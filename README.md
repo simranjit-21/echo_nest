@@ -67,7 +67,7 @@ Echo_Nest uses the logged data plus note sentiment to classify the entry into a 
 - `angry`
 - `gloomy`
 
-This logic lives in [app/mood.py](/e:/echo_nest/app/mood.py:1).
+This logic now lives primarily in [app/services/emotion.py](/e:/echo_nest/app/services/emotion.py:1), with routing in [app/mood.py](/e:/echo_nest/app/mood.py:1).
 
 ### 3. Build the Dashboard Story
 The dashboard summarizes:
@@ -79,6 +79,8 @@ The dashboard summarizes:
 - top activities
 - real-time suggestions
 - adaptive reset activity
+- weekly reflection wins and watchouts
+- per-entry "why this state?" explanations
 
 ### 4. Generate Companion Support
 The companion layer reviews:
@@ -122,6 +124,8 @@ This logic lives in [app/integrations.py](/e:/echo_nest/app/integrations.py:1).
 - daily entry form with structured context
 - notes-based sentiment cues
 - emotional-state classification
+- edit and delete support for existing entries
+- friendlier validation with clearer form errors
 
 ### Dashboard
 - trend chart
@@ -130,6 +134,9 @@ This logic lives in [app/integrations.py](/e:/echo_nest/app/integrations.py:1).
 - top anchors
 - adaptive reset module
 - forecast view
+- weekly reflection summary
+- entry explainability cards
+- historical analytics for weekday patterns, recovery spikes, and monthly drift
 
 ### AI Wellness Companion
 - context-aware responses
@@ -172,9 +179,19 @@ Only the landing page was redesigned; the rest of the app remains structurally u
 
 ## Project Structure
 
-- [app/mood.py](/e:/echo_nest/app/mood.py:1): routes, emotional-state logic, dashboard assembly, APIs
+- [app/mood.py](/e:/echo_nest/app/mood.py:1): routes and API endpoints
+- [app/services/emotion.py](/e:/echo_nest/app/services/emotion.py:1): emotion-state rules and explainability
+- [app/services/dashboard.py](/e:/echo_nest/app/services/dashboard.py:1): dashboard summaries and weekly reflection
+- [app/services/validation.py](/e:/echo_nest/app/services/validation.py:1): form validation
+- [app/services/companion_support.py](/e:/echo_nest/app/services/companion_support.py:1): companion analysis helpers
+- [app/services/gamification.py](/e:/echo_nest/app/services/gamification.py:1): streaks, badges, and points
+- [app/content.py](/e:/echo_nest/app/content.py:1): JSON-backed content/config loading
+- [app/env.py](/e:/echo_nest/app/env.py:1): lightweight `.env` autoloading
+- [app/schemas.py](/e:/echo_nest/app/schemas.py:1): API response schemas
 - [app/companion.py](/e:/echo_nest/app/companion.py:1): companion reasoning, journaling fallback, gamification
 - [app/integrations.py](/e:/echo_nest/app/integrations.py:1): OpenAI, Spotify, YouTube integration helpers
+- [app/data/emotion_config.json](/e:/echo_nest/app/data/emotion_config.json:1): emotion rules/content
+- [app/data/companion_config.json](/e:/echo_nest/app/data/companion_config.json:1): companion copy/content
 - [app/models.py](/e:/echo_nest/app/models.py:1): SQLModel models
 - [app/database.py](/e:/echo_nest/app/database.py:1): engine setup, SQLite schema backfill helpers
 - [app/ml.py](/e:/echo_nest/app/ml.py:1): mood forecast model loading and prediction
@@ -227,16 +244,36 @@ Defined in [app/templates/base.html](/e:/echo_nest/app/templates/base.html:1):
 
 ## Run The App
 
+Install dependencies first if needed:
+
+```powershell
+.\.venv\Scripts\pip.exe install -r requirements.txt
+```
+
 From the project root:
 
 ```powershell
-python run.py
+.\start_server.ps1
 ```
 
 Then open:
 
 ```text
 http://127.0.0.1:5000
+```
+
+If you prefer running Python directly:
+
+```powershell
+.\.venv\Scripts\python.exe run.py
+```
+
+For background server management:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start_server_detached.ps1
+powershell -ExecutionPolicy Bypass -File .\server_status.ps1
+powershell -ExecutionPolicy Bypass -File .\stop_server.ps1
 ```
 
 If `python run.py` behaves unreliably in your shell session, this foreground command is the most reliable fallback:
@@ -256,6 +293,9 @@ Copy values from [.env.example](/e:/echo_nest/.env.example:1) if you want live p
 ```env
 SECRET_KEY=change-me
 DATABASE_URL=sqlite:///echo_nest.db
+HOST=127.0.0.1
+PORT=5000
+LOG_LEVEL=INFO
 ```
 
 ### OpenAI Journaling
@@ -327,6 +367,7 @@ See [app/models.py](/e:/echo_nest/app/models.py:1).
 - `/auth/register`: register
 - `/auth/login`: login
 - `/log`: create mood entry
+- `/entries/<id>/edit`: edit an existing entry
 - `/dashboard`: main wellness dashboard
 
 ### APIs
@@ -335,20 +376,26 @@ See [app/models.py](/e:/echo_nest/app/models.py:1).
 - `/api/companion/chat`: companion response endpoint
 - `/api/habit/complete`: save habit completion and refresh rewards
 
+API responses are shaped through typed dataclass schemas in [app/schemas.py](/e:/echo_nest/app/schemas.py:1).
+
 ## Verification
 
 These checks passed locally:
 
 ```powershell
-python -m compileall app test run.py
+.\.venv\Scripts\python.exe -m pytest
 ```
 
 I also verified:
 
 - register/login flow
 - mood logging
+- validation error handling
 - landing page rendering
 - dashboard rendering
+- edit/delete entry flow
+- `.env` loading behavior
+- historical analytics summary generation
 - `/api/predict`
 - `/api/companion/chat`
 - `/api/habit/complete`
@@ -371,8 +418,5 @@ The app was also smoke-tested through Flask's test client for:
 
 ## Future Improvements
 
-- load `.env` automatically at app startup
-- add a production-grade server entrypoint like `waitress`
-- add richer historical analytics and weekly summaries
 - add friendlier setup instructions for API keys
 - add image-based emotion capture guidance to the README

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
+import time
+from functools import lru_cache
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -12,6 +15,10 @@ OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 SPOTIFY_SEARCH_URL = "https://api.spotify.com/v1/search"
 YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
+DEFAULT_HTTP_TIMEOUT = 6
+logger = logging.getLogger(__name__)
+_CACHE_TTL_SECONDS = 900
+_cache_store: dict[tuple[str, str, int], tuple[float, list[dict[str, str]]]] = {}
 
 
 def _json_request(
@@ -21,7 +28,7 @@ def _json_request(
     headers: dict[str, str] | None = None,
     payload: dict[str, object] | None = None,
     form_data: str | None = None,
-    timeout: int = 12,
+    timeout: int = DEFAULT_HTTP_TIMEOUT,
 ) -> dict[str, object]:
     request_headers = headers.copy() if headers else {}
     body = None
@@ -106,9 +113,11 @@ def analyze_journal_with_llm(entries: list[Entry], user_message: str = "") -> di
             "source": f"openai:{model}",
         }
     except (HTTPError, URLError, TimeoutError, ValueError, KeyError, json.JSONDecodeError):
+        logger.warning("OpenAI journal analysis failed, falling back to local rules.")
         return None
 
 
+@lru_cache(maxsize=1)
 def _spotify_access_token() -> str | None:
     client_id = os.getenv("SPOTIFY_CLIENT_ID", "").strip()
     client_secret = os.getenv("SPOTIFY_CLIENT_SECRET", "").strip()
@@ -128,12 +137,18 @@ def _spotify_access_token() -> str | None:
             form_data="grant_type=client_credentials",
         )
     except (HTTPError, URLError, TimeoutError, ValueError):
+        logger.warning("Spotify token request failed.")
         return None
     token = response.get("access_token")
     return str(token).strip() if token else None
 
 
 def fetch_spotify_recommendations(query: str, limit: int = 2) -> list[dict[str, str]]:
+    cache_key = ("spotify", query, limit)
+    cached = _cache_store.get(cache_key)
+    if cached and time.time() - cached[0] < _CACHE_TTL_SECONDS:
+        return cached[1]
+
     token = _spotify_access_token()
     if not token:
         return []
@@ -145,6 +160,7 @@ def fetch_spotify_recommendations(query: str, limit: int = 2) -> list[dict[str, 
             headers={"Authorization": f"Bearer {token}"},
         )
     except (HTTPError, URLError, TimeoutError, ValueError):
+        logger.warning("Spotify recommendations failed for query '%s'.", query)
         return []
 
     items = response.get("playlists", {}).get("items", [])
@@ -160,10 +176,17 @@ def fetch_spotify_recommendations(query: str, limit: int = 2) -> list[dict[str, 
                 "source": "spotify",
             }
         )
-    return [result for result in results if result["url"]]
+    filtered = [result for result in results if result["url"]]
+    _cache_store[cache_key] = (time.time(), filtered)
+    return filtered
 
 
 def fetch_youtube_recommendations(query: str, limit: int = 2) -> list[dict[str, str]]:
+    cache_key = ("youtube", query, limit)
+    cached = _cache_store.get(cache_key)
+    if cached and time.time() - cached[0] < _CACHE_TTL_SECONDS:
+        return cached[1]
+
     api_key = os.getenv("YOUTUBE_API_KEY", "").strip()
     if not api_key:
         return []
@@ -180,6 +203,7 @@ def fetch_youtube_recommendations(query: str, limit: int = 2) -> list[dict[str, 
     try:
         response = _json_request(f"{YOUTUBE_SEARCH_URL}?{params}")
     except (HTTPError, URLError, TimeoutError, ValueError):
+        logger.warning("YouTube recommendations failed for query '%s'.", query)
         return []
 
     items = response.get("items", [])
@@ -198,4 +222,5 @@ def fetch_youtube_recommendations(query: str, limit: int = 2) -> list[dict[str, 
                 "source": "youtube",
             }
         )
+    _cache_store[cache_key] = (time.time(), results)
     return results

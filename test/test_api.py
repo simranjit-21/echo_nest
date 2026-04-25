@@ -280,3 +280,88 @@ def test_companion_prefers_llm_journal_and_live_music(client, monkeypatch):
     assert data["journal"]["source"] == "openai:test-model"
     assert data["integrations"]["music_live"] is True
     assert data["music"][0]["spotify_url"] == "https://open.spotify.com/playlist/test"
+
+
+def test_log_validation_surfaces_user_friendly_errors(client):
+    client.post("/auth/register", data={"email": "invalid@x.com", "password": "p"})
+    client.post("/auth/login", data={"email": "invalid@x.com", "password": "p"})
+
+    r = client.post(
+        "/log",
+        data={
+            "mood": "9",
+            "activities": "walk",
+            "sleep_hours": "7",
+            "interaction_level": "3",
+            "screen_time_hours": "2",
+            "notes": "steady",
+        },
+    )
+
+    body = r.get_data(as_text=True)
+    assert r.status_code == 400
+    assert "between 1 and 5" in body
+
+
+def test_dashboard_shows_weekly_reflection_and_state_explanations(client):
+    client.post("/auth/register", data={"email": "reflect@x.com", "password": "p"})
+    client.post("/auth/login", data={"email": "reflect@x.com", "password": "p"})
+
+    client.post(
+        "/log",
+        data={
+            "mood": "2",
+            "activities": "scrolling, alone",
+            "sleep_hours": "5",
+            "interaction_level": "1",
+            "screen_time_hours": "9",
+            "notes": "tired overwhelmed foggy",
+        },
+    )
+
+    r = client.get("/dashboard")
+    body = r.get_data(as_text=True)
+    assert "Weekly Reflection" in body
+    assert "Why This State?" in body
+
+
+def test_user_can_edit_and_delete_entry(client):
+    from sqlmodel import Session, select
+
+    from app.models import Entry
+
+    client.post("/auth/register", data={"email": "edit@x.com", "password": "p"})
+    client.post("/auth/login", data={"email": "edit@x.com", "password": "p"})
+    client.post(
+        "/log",
+        data={
+            "mood": "3",
+            "activities": "walk",
+            "sleep_hours": "7",
+            "interaction_level": "3",
+            "screen_time_hours": "4",
+            "notes": "steady",
+        },
+    )
+
+    with Session(get_engine()) as session:
+        entry = session.exec(select(Entry)).first()
+        assert entry is not None
+        entry_id = entry.id
+
+    update = client.post(
+        f"/entries/{entry_id}/edit",
+        data={
+            "mood": "5",
+            "activities": "music, friends",
+            "sleep_hours": "8",
+            "interaction_level": "4",
+            "screen_time_hours": "2",
+            "notes": "good hopeful",
+        },
+        follow_redirects=True,
+    )
+    assert "Entry updated." in update.get_data(as_text=True)
+
+    delete = client.post(f"/entries/{entry_id}/delete", follow_redirects=True)
+    assert "Entry deleted." in delete.get_data(as_text=True)
