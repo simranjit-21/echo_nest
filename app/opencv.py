@@ -1,9 +1,5 @@
 from pathlib import Path
 
-import cv2
-import numpy as np
-import torch
-
 MODEL_PATH = Path(__file__).parent.parent / "models" / "emotion_cnn.pt"
 DEFAULT_EMOTION_RESULT = {
     "emotion": "neutral",
@@ -28,6 +24,8 @@ def _load_emotion_model():
         return None
 
     try:
+        import torch
+
         model = torch.load(MODEL_PATH, map_location="cpu", weights_only=False)
         model.eval()
         return model
@@ -38,8 +36,11 @@ def _load_emotion_model():
 _emotion_model = _load_emotion_model()
 
 
-def _preprocess(face_img: np.ndarray) -> torch.Tensor:
+def _preprocess(face_img):
     """Resize, normalize, and convert an image into a model-ready tensor."""
+    import cv2
+    import torch
+
     img = cv2.resize(face_img, (64, 64))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     tensor = torch.from_numpy(img).float() / 255.0
@@ -48,6 +49,13 @@ def _preprocess(face_img: np.ndarray) -> torch.Tensor:
 
 def detect_emotion(image_bytes: bytes) -> dict[str, float | int | str]:
     if _emotion_model is None or not image_bytes:
+        return DEFAULT_EMOTION_RESULT.copy()
+
+    try:
+        import cv2
+        import numpy as np
+        import torch
+    except ImportError:
         return DEFAULT_EMOTION_RESULT.copy()
 
     np_arr = np.frombuffer(image_bytes, np.uint8)

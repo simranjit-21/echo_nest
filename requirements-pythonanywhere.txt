@@ -1,0 +1,7 @@
+flask
+flask-login
+sqlmodel
+sqlalchemy
+werkzeug
+waitress
+gunicorn

@@ -1,8 +1,6 @@
 from pathlib import Path
 from typing import Iterable
 
-import numpy as np
-
 MODEL_PATH = Path(__file__).parent.parent / "models" / "mood_lstm.pkl"
 MIN_FORECAST_HISTORY = 5
 DEFAULT_PREDICTED_MOOD = 3.0
@@ -11,10 +9,15 @@ DEFAULT_PREDICTED_MOOD = 3.0
 class DummyMoodModel:
     """Fallback model that predicts from the recent average mood."""
 
-    def predict(self, seq: np.ndarray) -> np.ndarray:
-        if seq.ndim == 3:
-            return np.mean(seq, axis=(1, 2), keepdims=True).reshape(seq.shape[0], 1)
-        return np.array([[0.5]])
+    def predict(self, seq):
+        try:
+            import numpy as np
+
+            if getattr(seq, "ndim", None) == 3:
+                return np.mean(seq, axis=(1, 2), keepdims=True).reshape(seq.shape[0], 1)
+            return np.array([[0.5]])
+        except Exception:
+            return [[0.5]]
 
 
 def _load_model():
@@ -32,8 +35,10 @@ def _load_model():
 _model = _load_model()
 
 
-def _scale(seq: Iterable[int]) -> np.ndarray:
+def _scale(seq: Iterable[int]):
     """Scale 1-5 moods to a 0-1 range."""
+    import numpy as np
+
     arr = np.array(list(seq), dtype=float)
     if arr.size == 0:
         return arr
@@ -49,6 +54,12 @@ def predict_next_mood(recent_moods: list[int]) -> tuple[float, float, dict[str, 
 
     if len(recent_moods) < MIN_FORECAST_HISTORY:
         return float(recent_moods[-1]), 0.0, {}
+
+    try:
+        import numpy as np
+    except ImportError:
+        recent_avg = sum(recent_moods) / len(recent_moods)
+        return float(recent_avg), 0.0, {}
 
     seq = _scale(recent_moods).reshape(1, -1, 1)
 
